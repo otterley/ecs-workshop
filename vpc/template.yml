@@ -221,7 +221,6 @@ Resources:
       RouteTableId: !Ref PrivateRouteTableThree
       SubnetId: !Ref PrivateSubnetThree
 
-
   # This is an IAM role which authorizes ECS to manage resources on your
   # account on your behalf, such as updating your load balancer with the
   # details of where your containers are, so that traffic can reach your
@@ -286,6 +285,13 @@ Resources:
                   - logs:PutLogEvents
                 Resource: "*"
 
+  EcsInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref EcsInstanceRole
+
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -339,11 +345,11 @@ Outputs:
     Value: !Ref EcsServiceRole
     Export:
       Name: !Sub ${EnvironmentName}:EcsServiceRole
-  EcsInstanceRole:
-    Description: ECS instance Role
-    Value: !Ref EcsInstanceRole
+  EcsInstanceProfile:
+    Description: ECS instance profile
+    Value: !Ref EcsInstanceProfile
     Export:
-      Name: !Sub ${EnvironmentName}:EcsInstanceRole
+      Name: !Sub ${EnvironmentName}:EcsInstanceProfile
   InstanceSecurityGroup:
     Description: Instance security group
     Value: !GetAtt InstanceSecurityGroup.GroupId

@@ -17,13 +17,6 @@ Parameters:
     Description: EC2 AMI ID
 
 Resources:
-  InstanceProfile:
-    Type: AWS::IAM::InstanceProfile
-    Properties:
-      Path: /
-      Roles:
-        - Fn::ImportValue: ecsworkshop:EcsInstanceRole
-
   EcsInstance:
     Type: AWS::EC2::Instance
     CreationPolicy:
@@ -32,6 +25,8 @@ Resources:
     Properties:
       ImageId: !Ref ImageId
       InstanceType: !Ref EC2InstanceType
+      IamInstanceProfile:
+        Fn::ImportValue: ecsworkshop:EcsInstanceProfiles
       Monitoring: true
       SubnetId:
         Fn::ImportValue: ecsworkshop:PrivateSubnetOne
