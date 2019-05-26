@@ -21,6 +21,7 @@ Resources:
       Policies:
         - PolicyName: allow-session-manager
           PolicyDocument:
+            Version: 2012-10-17
             Statement:
               - Effect: Allow
                 Action: ssm:StartSession
@@ -30,12 +31,14 @@ Resources:
                 Resource: "arn:aws:ssm:*:*:session/${aws:username}-*"
         - PolicyName: allow-cloudformation
           PolicyDocument:
+            Version: 2012-10-17
             Statement:
               - Effect: Allow
                 Action: "cloudformation:*"
                 Resource: "*"
         - PolicyName: allow-iam-role-manipulation
           PolicyDocument:
+            Version: 2012-10-17
             Statement:
               - Effect: Allow
                 Action:
@@ -59,6 +62,7 @@ Resources:
                 Resource: "*"
         - PolicyName: view-logs
           PolicyDocument:
+            Version: 2012-10-17
             Statement:
               - Effect: Allow
                 Action:
