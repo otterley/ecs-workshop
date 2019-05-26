@@ -10,10 +10,10 @@ for i in $(seq 0 10); do
     # Set console password
     aws iam update-login-profile --user-name "$username" --password "$password" --no-password-reset-required >/dev/null
     # Delete access keys first
-    oldKeys=$(aws iam list-access-keys --user-name "$username" --query 'AccessMetadata[].AccessKeyId' --output text)
+    oldKeys=$(aws iam list-access-keys --user-name "$username" --query 'AccessKeyMetadata[].AccessKeyId' --output text)
     if [[ "$oldKeys" != None ]]; then
         for oldKey in $oldKeys; do
-            aws iam delete-access-key --access-key-id "$oldKey"
+            aws iam delete-access-key --user-name "$username" --access-key-id "$oldKey"
         done
     fi
     creds=$(aws iam create-access-key --user-name "$username")
