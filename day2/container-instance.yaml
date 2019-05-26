@@ -42,7 +42,7 @@ Resources:
             #!/bin/bash -ex
             echo "ECS_CLUSTER=${ClusterName}" >> /etc/ecs/ecs.config
             yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm \
-                           https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.amzn1.noarch.rpm
+                           aws-cfn-bootstrap
             systemctl enable amazon-ssm-agent
             systemctl start amazon-ssm-agent
             /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource EcsInstance --region ${AWS::Region}
