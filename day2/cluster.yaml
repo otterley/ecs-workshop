@@ -1,0 +1,19 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create ECS cluster
+
+Parameters:
+  ClusterName:
+    Description: Cluster name
+    Type: String
+    AllowedPattern: "^ecs-workshop-user-[0-9]+$"
+
+Resources:
+  ECSCluster:
+    Type: "AWS::ECS::Cluster"
+    Properties:
+      ClusterName: !Ref ClusterName
+
+Outputs:
+  ECSCluster:
+    Description: ECS Cluster
+    Value: !Ref ECSCluster
