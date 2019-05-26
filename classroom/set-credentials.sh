@@ -4,12 +4,11 @@ set -e
 
 echo -e "username\tpassword\taws_access_key_id\taws_secret_access_key"
 
-for i in $(seq 1 10); do
+for i in $(seq 0 10); do
     username="ecs-workshop-user-$i"
     password=$(openssl rand 10 | base64 | sed -e 's/==$//')
     # Set console password
-    aws iam create-login-profile --user-name "$username" --password "$password" --no-password-reset-required >/dev/null 2>&1 ||
-        aws iam update-login-profile --user-name "$username" --password "$password" --no-password-reset-required >/dev/null
+    aws iam update-login-profile --user-name "$username" --password "$password" --no-password-reset-required >/dev/null
     # Delete access keys first
     oldKeys=$(aws iam list-access-keys --user-name "$username" --query 'AccessMetadata[].AccessKeyId' --output text)
     if [[ "$oldKeys" != None ]]; then

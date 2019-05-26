@@ -1,10 +1,19 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: VPC and EC2 container instances for use with an ECS cluster
+Description: Classroom setup for ECS Workshop
+
 Parameters:
+  WorkspaceInstanceType:
+    Description: Cloud9 Workspace instance type
+    Type: String
+    Default: t2.micro
   EnvironmentName:
     Description: Environment Name
     Type: String
     Default: ecsworkshop
+  DefaultPassword:
+    Description: Default user password
+    Type: String
+    NoEcho: true
 
 Mappings:
   # Hard values for the subnet masks. These masks define
@@ -35,7 +44,289 @@ Mappings:
       CIDR: "10.0.101.0/24"
     PrivateThree:
       CIDR: "10.0.102.0/24"
+
 Resources:
+  WorkshopUserGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: ECSWorkshopUsers
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSCloud9User
+        - arn:aws:iam::aws:policy/AmazonECS_FullAccess
+        - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+        - arn:aws:iam::aws:policy/CloudWatchFullAccess
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+      Policies:
+        - PolicyName: allow-session-manager
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: ssm:StartSession
+                Resource: "*"
+              - Effect: Allow
+                Action: ssm:TerminateSession
+                Resource: "arn:aws:ssm:*:*:session/${aws:username}-*"
+        - PolicyName: allow-cloudformation
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Deny
+                Action: "cloudformation:*"
+                Resource: !Sub "arn:aws:cloudformation:*:${AWS::AccountId}:stack/*DO-NOT-DELETE*"
+              - Effect: Allow
+                Action: "cloudformation:*"
+                Resource: "*"
+        - PolicyName: allow-iam-role-manipulation
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:AddRoleToInstanceProfile
+                  - iam:AttachRolePolicy
+                  - iam:CreateInstanceProfile
+                  - iam:CreateRole
+                  - iam:DetachRolePolicy
+                  - iam:DeleteInstanceProfile
+                  - iam:DeleteRole
+                  - iam:DeleteRolePolicy
+                  - iam:GetInstanceProfile
+                  - iam:GetRole
+                  - iam:GetRolePolicy
+                  - iam:PassRole
+                  - iam:PutRolePolicy
+                  - iam:RemoveRoleFromInstanceProfile
+                  - iam:TagRole
+                  - iam:UpdateAssumeRolePolicy
+                  - iam:UpdateRole
+                Resource: "*"
+        - PolicyName: view-logs
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:DescribeLogStreams
+                  - logs:GetLogEvents
+                Resource: "arn:aws:logs:*:*:log-group:ecsdemo-*:log-stream:*"
+
+  WorkshopLeaderWorkspace:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 30
+      InstanceType: !Ref WorkspaceInstanceType
+      Name: ECS Workshop Leader
+
+  WorkshopUser0:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: ecs-workshop-user-0
+      Path: /
+      Groups:
+        - !Ref WorkshopUserGroup
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+
+  WorkshopUser0Workspace:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 30
+      InstanceType: !Ref WorkspaceInstanceType
+      Name: ECS Workshop User 0
+      OwnerArn: !GetAtt [WorkshopUser0, Arn]
+
+  WorkshopUser1:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: ecs-workshop-user-1
+      Path: /
+      Groups:
+        - !Ref WorkshopUserGroup
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+
+  WorkshopUser1Workspace:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 30
+      InstanceType: !Ref WorkspaceInstanceType
+      Name: ECS Workshop User 1
+      OwnerArn: !GetAtt [WorkshopUser1, Arn]
+
+  WorkshopUser2:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: ecs-workshop-user-2
+      Path: /
+      Groups:
+        - !Ref WorkshopUserGroup
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+
+  WorkshopUser2Workspace:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 30
+      InstanceType: !Ref WorkspaceInstanceType
+      Name: ECS Workshop User 2
+      OwnerArn: !GetAtt [WorkshopUser2, Arn]
+
+  WorkshopUser3:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: ecs-workshop-user-3
+      Path: /
+      Groups:
+        - !Ref WorkshopUserGroup
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+
+  WorkshopUser3Workspace:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 30
+      InstanceType: !Ref WorkspaceInstanceType
+      Name: ECS Workshop User 3
+      OwnerArn: !GetAtt [WorkshopUser3, Arn]
+
+  WorkshopUser4:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: ecs-workshop-user-4
+      Path: /
+      Groups:
+        - !Ref WorkshopUserGroup
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+
+  WorkshopUser4Workspace:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 30
+      InstanceType: !Ref WorkspaceInstanceType
+      Name: ECS Workshop User 4
+      OwnerArn: !GetAtt [WorkshopUser4, Arn]
+
+  WorkshopUser5:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: ecs-workshop-user-5
+      Path: /
+      Groups:
+        - !Ref WorkshopUserGroup
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+
+  WorkshopUser5Workspace:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 30
+      InstanceType: !Ref WorkspaceInstanceType
+      Name: ECS Workshop User 5
+      OwnerArn: !GetAtt [WorkshopUser5, Arn]
+
+  WorkshopUser6:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: ecs-workshop-user-6
+      Path: /
+      Groups:
+        - !Ref WorkshopUserGroup
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+
+  WorkshopUser6Workspace:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 30
+      InstanceType: !Ref WorkspaceInstanceType
+      Name: ECS Workshop User 6
+      OwnerArn: !GetAtt [WorkshopUser6, Arn]
+
+  WorkshopUser7:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: ecs-workshop-user-7
+      Path: /
+      Groups:
+        - !Ref WorkshopUserGroup
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+
+  WorkshopUser7Workspace:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 30
+      InstanceType: !Ref WorkspaceInstanceType
+      Name: ECS Workshop User 7
+      OwnerArn: !GetAtt [WorkshopUser7, Arn]
+
+  WorkshopUser8:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: ecs-workshop-user-8
+      Path: /
+      Groups:
+        - !Ref WorkshopUserGroup
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+
+  WorkshopUser8Workspace:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 30
+      InstanceType: !Ref WorkspaceInstanceType
+      Name: ECS Workshop User 8
+      OwnerArn: !GetAtt [WorkshopUser8, Arn]
+
+  WorkshopUser9:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: ecs-workshop-user-9
+      Path: /
+      Groups:
+        - !Ref WorkshopUserGroup
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+
+  WorkshopUser9Workspace:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 30
+      InstanceType: !Ref WorkspaceInstanceType
+      Name: ECS Workshop User 9
+      OwnerArn: !GetAtt [WorkshopUser9, Arn]
+
+  WorkshopUser10:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: ecs-workshop-user-10
+      Path: /
+      Groups:
+        - !Ref WorkshopUserGroup
+      LoginProfile:
+        Password: !Ref DefaultPassword
+        PasswordResetRequired: false
+
+  WorkshopUser10Workspace:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 30
+      InstanceType: !Ref WorkspaceInstanceType
+      Name: ECS Workshop User 10
+      OwnerArn: !GetAtt [WorkshopUser10, Arn]
+
   # VPC in which containers will be networked.
   # It has two public subnets, and two private subnets.
   # We distribute the subnets across the first two available subnets
@@ -289,8 +580,8 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                - cloudformation:DescribeStackResource
-                - cloudformation:SignalResource
+                  - cloudformation:DescribeStackResource
+                  - cloudformation:SignalResource
                 Resource: "*"
 
   EcsInstanceProfile:
