@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create ECS container instance that joins a specified cluster automatically
+
+Parameters:
+  ClusterName:
+    Description: Cluster name
+    Type: String
+    AllowedPattern: "^ecs-workshop-user-[0-9]+$"
+  EC2InstanceType:
+    Type: String
+    # We need these to be xlarge so we don't run out of ENIs
+    Default: t3a.xlarge
+    Description: EC2 instance type
+  ImageId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id
+    Description: EC2 AMI ID
+
+Resources:
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - Fn::ImportValue: ecsworkshop:ECSInstanceRole
+
+  myEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref ImageId
+      InstanceType: !Ref EC2InstanceType
+      Monitoring: true
+      SecurityGroupIds:
+        - Fn::ImportValue: ecsworkshop:InstanceSecurityGroup
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -ex
+            echo "ECS_CLUSTER=${ClusterName}" >> /etc/ecs/ecs.config
+            yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+            systemctl enable amazon-ssm-agent
+            systemctl start amazon-ssm-agent
