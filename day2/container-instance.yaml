@@ -29,7 +29,6 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        
     Properties:
       ImageId: !Ref ImageId
       InstanceType: !Ref EC2InstanceType
