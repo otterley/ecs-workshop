@@ -22,7 +22,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        WaitTime: PT5M
+        Timeout: PT5M
     Properties:
       ImageId: !Ref ImageId
       InstanceType: !Ref EC2InstanceType
