@@ -22,7 +22,7 @@ Resources:
     Properties:
       Path: /
       Roles:
-        - Fn::ImportValue: ecsworkshop:ECSInstanceRole
+        - Fn::ImportValue: ecsworkshop:EcsInstanceRole
 
   myEC2Instance:
     Type: AWS::EC2::Instance
