@@ -284,6 +284,14 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: "*"
+        - PolicyName: signal-cloudformation
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                - cloudformation:DescribeStackResource
+                - cloudformation:SignalResource
+                Resource: "*"
 
   EcsInstanceProfile:
     Type: AWS::IAM::InstanceProfile
