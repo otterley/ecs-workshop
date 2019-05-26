@@ -45,4 +45,4 @@ Resources:
                            aws-cfn-bootstrap
             systemctl enable amazon-ssm-agent
             systemctl start amazon-ssm-agent
-            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource EcsInstance --region ${AWS::Region}
+            /opt/aws/bin/cfn-signal --success --stack ${AWS::StackName} --resource EcsInstance --region ${AWS::Region}
