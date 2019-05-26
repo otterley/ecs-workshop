@@ -27,7 +27,7 @@ Resources:
       ImageId: !Ref ImageId
       InstanceType: !Ref EC2InstanceType
       IamInstanceProfile:
-        Fn::ImportValue: ecsworkshop:EcsInstanceProfiles
+        Fn::ImportValue: ecsworkshop:EcsInstanceProfile
       Monitoring: true
       SubnetId:
         Fn::ImportValue: ecsworkshop:PrivateSubnetOne
