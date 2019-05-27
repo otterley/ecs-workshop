@@ -367,7 +367,7 @@ Resources:
   ECSInstanceLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
-      AssociatePublicIpAddress: false
+      AssociatePublicIpAddress: true
       IamInstanceProfile: !Ref ECSInstanceProfile
       ImageId: !Ref ImageId
       InstanceMonitoring: true
