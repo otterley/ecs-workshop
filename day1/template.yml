@@ -40,12 +40,12 @@ Mappings:
       CIDR: "10.0.1.0/24"
     PublicThree:
       CIDR: "10.0.2.0/24"
-    PrivateOne:
-      CIDR: "10.0.100.0/24"
-    PrivateTwo:
-      CIDR: "10.0.101.0/24"
-    PrivateThree:
-      CIDR: "10.0.102.0/24"
+    # PrivateOne:
+    #   CIDR: "10.0.100.0/24"
+    # PrivateTwo:
+    #   CIDR: "10.0.101.0/24"
+    # PrivateThree:
+    #   CIDR: "10.0.102.0/24"
 Resources:
   # VPC in which containers will be networked.
   # It has two public subnets, and two private subnets.
@@ -90,30 +90,30 @@ Resources:
   # Three private subnets where containers will only have private
   # IP addresses, and will only be reachable by other members of the
   # VPC
-  PrivateSubnetOne:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone: !Select
-        - 0
-        - Fn::GetAZs: !Ref "AWS::Region"
-      VpcId: !Ref "VPC"
-      CidrBlock: !FindInMap ["SubnetConfig", "PrivateOne", "CIDR"]
-  PrivateSubnetTwo:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone: !Select
-        - 1
-        - Fn::GetAZs: !Ref "AWS::Region"
-      VpcId: !Ref "VPC"
-      CidrBlock: !FindInMap ["SubnetConfig", "PrivateTwo", "CIDR"]
-  PrivateSubnetThree:
-    Type: AWS::EC2::Subnet
-    Properties:
-      AvailabilityZone: !Select
-        - 2
-        - Fn::GetAZs: !Ref "AWS::Region"
-      VpcId: !Ref "VPC"
-      CidrBlock: !FindInMap ["SubnetConfig", "PrivateThree", "CIDR"]
+  # PrivateSubnetOne:
+  #   Type: AWS::EC2::Subnet
+  #   Properties:
+  #     AvailabilityZone: !Select
+  #       - 0
+  #       - Fn::GetAZs: !Ref "AWS::Region"
+  #     VpcId: !Ref "VPC"
+  #     CidrBlock: !FindInMap ["SubnetConfig", "PrivateOne", "CIDR"]
+  # PrivateSubnetTwo:
+  #   Type: AWS::EC2::Subnet
+  #   Properties:
+  #     AvailabilityZone: !Select
+  #       - 1
+  #       - Fn::GetAZs: !Ref "AWS::Region"
+  #     VpcId: !Ref "VPC"
+  #     CidrBlock: !FindInMap ["SubnetConfig", "PrivateTwo", "CIDR"]
+  # PrivateSubnetThree:
+  #   Type: AWS::EC2::Subnet
+  #   Properties:
+  #     AvailabilityZone: !Select
+  #       - 2
+  #       - Fn::GetAZs: !Ref "AWS::Region"
+  #     VpcId: !Ref "VPC"
+  #     CidrBlock: !FindInMap ["SubnetConfig", "PrivateThree", "CIDR"]
 
   # Setup networking resources for the public subnets. Containers
   # in the public subnets have public IP addresses and the routing table
@@ -186,10 +186,10 @@ Resources:
   #   Properties:
   #     AllocationId: !GetAtt NatGatewayThreeAttachment.AllocationId
   #     SubnetId: !Ref PublicSubnetThree
-  PrivateRouteTableOne:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref "VPC"
+  # PrivateRouteTableOne:
+  #   Type: AWS::EC2::RouteTable
+  #   Properties:
+  #     VpcId: !Ref "VPC"
   # PrivateRouteOne:
   #   Type: AWS::EC2::Route
   #   Properties:
@@ -395,9 +395,9 @@ Resources:
           Value: !Sub "ecs-instance-${EnvironmentName}"
           PropagateAtLaunch: true
       VPCZoneIdentifier:
-        - !Ref PrivateSubnetOne
-        - !Ref PrivateSubnetTwo
-        - !Ref PrivateSubnetThree
+        - !Ref PublicSubnetOne
+        - !Ref PublicSubnetTwo
+        - !Ref PublicSubnetThree
     CreationPolicy:
       ResourceSignal:
         Timeout: PT5M
@@ -502,21 +502,21 @@ Outputs:
     Value: !Ref "PublicSubnetThree"
     Export:
       Name: !Sub ${EnvironmentName}:PublicSubnetThree
-  PrivateSubnetOne:
-    Description: Private subnet one
-    Value: !Ref "PrivateSubnetOne"
-    Export:
-      Name: !Sub ${EnvironmentName}:PrivateSubnetOne
-  PrivateSubnetTwo:
-    Description: Private subnet two
-    Value: !Ref "PrivateSubnetTwo"
-    Export:
-      Name: !Sub ${EnvironmentName}:PrivateSubnetTwo
-  PrivateSubnetThree:
-    Description: Private subnet three
-    Value: !Ref "PrivateSubnetThree"
-    Export:
-      Name: !Sub ${EnvironmentName}:PrivateSubnetThree
+  # PrivateSubnetOne:
+  #   Description: Private subnet one
+  #   Value: !Ref "PrivateSubnetOne"
+  #   Export:
+  #     Name: !Sub ${EnvironmentName}:PrivateSubnetOne
+  # PrivateSubnetTwo:
+  #   Description: Private subnet two
+  #   Value: !Ref "PrivateSubnetTwo"
+  #   Export:
+  #     Name: !Sub ${EnvironmentName}:PrivateSubnetTwo
+  # PrivateSubnetThree:
+  #   Description: Private subnet three
+  #   Value: !Ref "PrivateSubnetThree"
+  #   Export:
+  #     Name: !Sub ${EnvironmentName}:PrivateSubnetThree
   ContainerSecurityGroup:
     Description: A security group used to allow the containers to receive traffic
     Value: !Ref "ContainerSecurityGroup"
