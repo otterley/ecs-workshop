@@ -10,10 +10,6 @@ Parameters:
     Description: Environment Name
     Type: String
     Default: ecsworkshop
-  DefaultPassword:
-    Description: Default user password
-    Type: String
-    NoEcho: true
 
 Mappings:
   # Hard values for the subnet masks. These masks define
@@ -135,9 +131,6 @@ Resources:
       Path: /
       Groups:
         - !Ref WorkshopUserGroup
-      LoginProfile:
-        Password: !Ref DefaultPassword
-        PasswordResetRequired: false
 
   WorkshopUser0Workspace:
     Type: AWS::Cloud9::EnvironmentEC2
@@ -154,9 +147,6 @@ Resources:
       Path: /
       Groups:
         - !Ref WorkshopUserGroup
-      LoginProfile:
-        Password: !Ref DefaultPassword
-        PasswordResetRequired: false
 
   WorkshopUser1Workspace:
     Type: AWS::Cloud9::EnvironmentEC2
@@ -173,9 +163,6 @@ Resources:
       Path: /
       Groups:
         - !Ref WorkshopUserGroup
-      LoginProfile:
-        Password: !Ref DefaultPassword
-        PasswordResetRequired: false
 
   WorkshopUser2Workspace:
     Type: AWS::Cloud9::EnvironmentEC2
@@ -192,9 +179,6 @@ Resources:
       Path: /
       Groups:
         - !Ref WorkshopUserGroup
-      LoginProfile:
-        Password: !Ref DefaultPassword
-        PasswordResetRequired: false
 
   WorkshopUser3Workspace:
     Type: AWS::Cloud9::EnvironmentEC2
@@ -211,9 +195,6 @@ Resources:
       Path: /
       Groups:
         - !Ref WorkshopUserGroup
-      LoginProfile:
-        Password: !Ref DefaultPassword
-        PasswordResetRequired: false
 
   WorkshopUser4Workspace:
     Type: AWS::Cloud9::EnvironmentEC2
@@ -230,9 +211,6 @@ Resources:
       Path: /
       Groups:
         - !Ref WorkshopUserGroup
-      LoginProfile:
-        Password: !Ref DefaultPassword
-        PasswordResetRequired: false
 
   WorkshopUser5Workspace:
     Type: AWS::Cloud9::EnvironmentEC2
@@ -249,9 +227,6 @@ Resources:
       Path: /
       Groups:
         - !Ref WorkshopUserGroup
-      LoginProfile:
-        Password: !Ref DefaultPassword
-        PasswordResetRequired: false
 
   WorkshopUser6Workspace:
     Type: AWS::Cloud9::EnvironmentEC2
@@ -268,9 +243,6 @@ Resources:
       Path: /
       Groups:
         - !Ref WorkshopUserGroup
-      LoginProfile:
-        Password: !Ref DefaultPassword
-        PasswordResetRequired: false
 
   WorkshopUser7Workspace:
     Type: AWS::Cloud9::EnvironmentEC2
@@ -287,9 +259,6 @@ Resources:
       Path: /
       Groups:
         - !Ref WorkshopUserGroup
-      LoginProfile:
-        Password: !Ref DefaultPassword
-        PasswordResetRequired: false
 
   WorkshopUser8Workspace:
     Type: AWS::Cloud9::EnvironmentEC2
@@ -306,9 +275,6 @@ Resources:
       Path: /
       Groups:
         - !Ref WorkshopUserGroup
-      LoginProfile:
-        Password: !Ref DefaultPassword
-        PasswordResetRequired: false
 
   WorkshopUser9Workspace:
     Type: AWS::Cloud9::EnvironmentEC2
@@ -325,9 +291,6 @@ Resources:
       Path: /
       Groups:
         - !Ref WorkshopUserGroup
-      LoginProfile:
-        Password: !Ref DefaultPassword
-        PasswordResetRequired: false
 
   WorkshopUser10Workspace:
     Type: AWS::Cloud9::EnvironmentEC2
@@ -336,6 +299,54 @@ Resources:
       InstanceType: !Ref WorkspaceInstanceType
       Name: ECS Workshop User 10
       OwnerArn: !GetAtt [WorkshopUser10, Arn]
+
+  WorkshopUser11:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: ecs-workshop-user-11
+      Path: /
+      Groups:
+        - !Ref WorkshopUserGroup
+
+  WorkshopUser11Workspace:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 30
+      InstanceType: !Ref WorkspaceInstanceType
+      Name: ECS Workshop User 11
+      OwnerArn: !GetAtt [WorkshopUser11, Arn]
+
+  WorkshopUser12:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: ecs-workshop-user-12
+      Path: /
+      Groups:
+        - !Ref WorkshopUserGroup
+
+  WorkshopUser12Workspace:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 30
+      InstanceType: !Ref WorkspaceInstanceType
+      Name: ECS Workshop User 12
+      OwnerArn: !GetAtt [WorkshopUser12, Arn]
+
+  WorkshopUser13:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: ecs-workshop-user-13
+      Path: /
+      Groups:
+        - !Ref WorkshopUserGroup
+
+  WorkshopUser13Workspace:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      AutomaticStopTimeMinutes: 30
+      InstanceType: !Ref WorkspaceInstanceType
+      Name: ECS Workshop User 13
+      OwnerArn: !GetAtt [WorkshopUser13, Arn]
 
   # VPC in which containers will be networked.
   # It has two public subnets, and two private subnets.
