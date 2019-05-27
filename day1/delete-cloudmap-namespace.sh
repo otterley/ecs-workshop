@@ -1,4 +1,5 @@
 #!/bin/bash -ex
 
-namespace=$(aws servicediscovery list-namespaces --query 'Namespaces[?Name==`service`].Id' --output text)
-aws servicediscovery delete-namespace --id "$namespace"
+for namespace in $(aws servicediscovery list-namespaces --query 'Namespaces[?Name==`service`].Id' --output text); do
+    aws servicediscovery delete-namespace --id "$namespace"
+done

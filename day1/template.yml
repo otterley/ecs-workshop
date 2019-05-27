@@ -90,30 +90,30 @@ Resources:
   # Three private subnets where containers will only have private
   # IP addresses, and will only be reachable by other members of the
   # VPC
-  # PrivateSubnetOne:
-  #   Type: AWS::EC2::Subnet
-  #   Properties:
-  #     AvailabilityZone: !Select
-  #       - 0
-  #       - Fn::GetAZs: !Ref "AWS::Region"
-  #     VpcId: !Ref "VPC"
-  #     CidrBlock: !FindInMap ["SubnetConfig", "PrivateOne", "CIDR"]
-  # PrivateSubnetTwo:
-  #   Type: AWS::EC2::Subnet
-  #   Properties:
-  #     AvailabilityZone: !Select
-  #       - 1
-  #       - Fn::GetAZs: !Ref "AWS::Region"
-  #     VpcId: !Ref "VPC"
-  #     CidrBlock: !FindInMap ["SubnetConfig", "PrivateTwo", "CIDR"]
-  # PrivateSubnetThree:
-  #   Type: AWS::EC2::Subnet
-  #   Properties:
-  #     AvailabilityZone: !Select
-  #       - 2
-  #       - Fn::GetAZs: !Ref "AWS::Region"
-  #     VpcId: !Ref "VPC"
-  #     CidrBlock: !FindInMap ["SubnetConfig", "PrivateThree", "CIDR"]
+  PrivateSubnetOne:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select
+        - 0
+        - Fn::GetAZs: !Ref "AWS::Region"
+      VpcId: !Ref "VPC"
+      CidrBlock: !FindInMap ["SubnetConfig", "PrivateOne", "CIDR"]
+  PrivateSubnetTwo:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select
+        - 1
+        - Fn::GetAZs: !Ref "AWS::Region"
+      VpcId: !Ref "VPC"
+      CidrBlock: !FindInMap ["SubnetConfig", "PrivateTwo", "CIDR"]
+  PrivateSubnetThree:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select
+        - 2
+        - Fn::GetAZs: !Ref "AWS::Region"
+      VpcId: !Ref "VPC"
+      CidrBlock: !FindInMap ["SubnetConfig", "PrivateThree", "CIDR"]
 
   # Setup networking resources for the public subnets. Containers
   # in the public subnets have public IP addresses and the routing table
@@ -156,81 +156,81 @@ Resources:
   # in these subnets have only private IP addresses, and must use a NAT
   # gateway to talk to the internet. We launch three NAT gateways, one for
   # each private subnet.
-  # NatGatewayOneAttachment:
-  #   Type: AWS::EC2::EIP
-  #   DependsOn: GatewayAttachment
-  #   Properties:
-  #     Domain: vpc
-  # NatGatewayTwoAttachment:
-  #   Type: AWS::EC2::EIP
-  #   DependsOn: GatewayAttachment
-  #   Properties:
-  #     Domain: vpc
-  # NatGatewayThreeAttachment:
-  #   Type: AWS::EC2::EIP
-  #   DependsOn: GatewayAttachment
-  #   Properties:
-  #     Domain: vpc
-  # NatGatewayOne:
-  #   Type: AWS::EC2::NatGateway
-  #   Properties:
-  #     AllocationId: !GetAtt NatGatewayOneAttachment.AllocationId
-  #     SubnetId: !Ref PublicSubnetOne
-  # NatGatewayTwo:
-  #   Type: AWS::EC2::NatGateway
-  #   Properties:
-  #     AllocationId: !GetAtt NatGatewayTwoAttachment.AllocationId
-  #     SubnetId: !Ref PublicSubnetTwo
-  # NatGatewayThree:
-  #   Type: AWS::EC2::NatGateway
-  #   Properties:
-  #     AllocationId: !GetAtt NatGatewayThreeAttachment.AllocationId
-  #     SubnetId: !Ref PublicSubnetThree
-  # PrivateRouteTableOne:
-  #   Type: AWS::EC2::RouteTable
-  #   Properties:
-  #     VpcId: !Ref "VPC"
-  # PrivateRouteOne:
-  #   Type: AWS::EC2::Route
-  #   Properties:
-  #     RouteTableId: !Ref PrivateRouteTableOne
-  #     DestinationCidrBlock: 0.0.0.0/0
-  #     #NatGatewayId: !Ref NatGatewayOne
-  # PrivateRouteTableOneAssociation:
-  #   Type: AWS::EC2::SubnetRouteTableAssociation
-  #   Properties:
-  #     RouteTableId: !Ref PrivateRouteTableOne
-  #     SubnetId: !Ref PrivateSubnetOne
-  # PrivateRouteTableTwo:
-  #   Type: AWS::EC2::RouteTable
-  #   Properties:
-  #     VpcId: !Ref "VPC"
-  # PrivateRouteTwo:
-  #   Type: AWS::EC2::Route
-  #   Properties:
-  #     RouteTableId: !Ref PrivateRouteTableTwo
-  #     DestinationCidrBlock: 0.0.0.0/0
-  #     #NatGatewayId: !Ref NatGatewayTwo
-  # PrivateRouteTableTwoAssociation:
-  #   Type: AWS::EC2::SubnetRouteTableAssociation
-  #   Properties:
-  #     RouteTableId: !Ref PrivateRouteTableTwo
-  #     SubnetId: !Ref PrivateSubnetTwo
-  # PrivateRouteTableThree:
-  #   Type: AWS::EC2::RouteTable
-  #   Properties:
-  #     VpcId: !Ref "VPC"
-  # PrivateRouteThree:
-  #   Type: AWS::EC2::Route
-  #   Properties:
-  #     RouteTableId: !Ref PrivateRouteTableThree
-  #     DestinationCidrBlock: 0.0.0.0/0
-  #     #NatGatewayId: !Ref NatGatewayThree
-  # PrivateRouteTableThreeAssociation:
-  #   Type: AWS::EC2::SubnetRouteTableAssociation
-  #   Properties:
-  #     RouteTableId: !Ref PrivateRouteTableThree
-  #     SubnetId: !Ref PrivateSubnetThree
+  NatGatewayOneAttachment:
+    Type: AWS::EC2::EIP
+    DependsOn: GatewayAttachment
+    Properties:
+      Domain: vpc
+  NatGatewayTwoAttachment:
+    Type: AWS::EC2::EIP
+    DependsOn: GatewayAttachment
+    Properties:
+      Domain: vpc
+  NatGatewayThreeAttachment:
+    Type: AWS::EC2::EIP
+    DependsOn: GatewayAttachment
+    Properties:
+      Domain: vpc
+  NatGatewayOne:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayOneAttachment.AllocationId
+      SubnetId: !Ref PublicSubnetOne
+  NatGatewayTwo:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayTwoAttachment.AllocationId
+      SubnetId: !Ref PublicSubnetTwo
+  NatGatewayThree:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayThreeAttachment.AllocationId
+      SubnetId: !Ref PublicSubnetThree
+  PrivateRouteTableOne:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref "VPC"
+  PrivateRouteOne:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableOne
+      DestinationCidrBlock: 0.0.0.0/0
+      #NatGatewayId: !Ref NatGatewayOne
+  PrivateRouteTableOneAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableOne
+      SubnetId: !Ref PrivateSubnetOne
+  PrivateRouteTableTwo:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref "VPC"
+  PrivateRouteTwo:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableTwo
+      DestinationCidrBlock: 0.0.0.0/0
+      #NatGatewayId: !Ref NatGatewayTwo
+  PrivateRouteTableTwoAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableTwo
+      SubnetId: !Ref PrivateSubnetTwo
+  PrivateRouteTableThree:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref "VPC"
+  PrivateRouteThree:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableThree
+      DestinationCidrBlock: 0.0.0.0/0
+      #NatGatewayId: !Ref NatGatewayThree
+  PrivateRouteTableThreeAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableThree
+      SubnetId: !Ref PrivateSubnetThree
 
   # ECS Resources
   ECSCluster:
@@ -395,9 +395,9 @@ Resources:
           Value: !Sub "ecs-instance-${EnvironmentName}"
           PropagateAtLaunch: true
       VPCZoneIdentifier:
-        - !Ref PublicSubnetOne
-        - !Ref PublicSubnetTwo
-        - !Ref PublicSubnetThree
+        - !Ref PrivateSubnetOne
+        - !Ref PrivateSubnetTwo
+        - !Ref PrivateSubnetThree
     CreationPolicy:
       ResourceSignal:
         Timeout: PT5M
@@ -502,21 +502,21 @@ Outputs:
     Value: !Ref "PublicSubnetThree"
     Export:
       Name: !Sub ${EnvironmentName}:PublicSubnetThree
-  # PrivateSubnetOne:
-  #   Description: Private subnet one
-  #   Value: !Ref "PrivateSubnetOne"
-  #   Export:
-  #     Name: !Sub ${EnvironmentName}:PrivateSubnetOne
-  # PrivateSubnetTwo:
-  #   Description: Private subnet two
-  #   Value: !Ref "PrivateSubnetTwo"
-  #   Export:
-  #     Name: !Sub ${EnvironmentName}:PrivateSubnetTwo
-  # PrivateSubnetThree:
-  #   Description: Private subnet three
-  #   Value: !Ref "PrivateSubnetThree"
-  #   Export:
-  #     Name: !Sub ${EnvironmentName}:PrivateSubnetThree
+  PrivateSubnetOne:
+    Description: Private subnet one
+    Value: !Ref "PrivateSubnetOne"
+    Export:
+      Name: !Sub ${EnvironmentName}:PrivateSubnetOne
+  PrivateSubnetTwo:
+    Description: Private subnet two
+    Value: !Ref "PrivateSubnetTwo"
+    Export:
+      Name: !Sub ${EnvironmentName}:PrivateSubnetTwo
+  PrivateSubnetThree:
+    Description: Private subnet three
+    Value: !Ref "PrivateSubnetThree"
+    Export:
+      Name: !Sub ${EnvironmentName}:PrivateSubnetThree
   ContainerSecurityGroup:
     Description: A security group used to allow the containers to receive traffic
     Value: !Ref "ContainerSecurityGroup"
