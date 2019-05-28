@@ -639,6 +639,12 @@ Resources:
     Properties:
       GroupDescription: Allow all egress
       VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - SourceSecurityGroupId:
+            Fn::ImportValue: ecsworkshop:PublicLoadBalancerSG
+          IpProtocol: tcp
+          FromPort: 1024
+          ToPort: 65535
       SecurityGroupEgress:
         - CidrIp: 0.0.0.0/0
           IpProtocol: "-1"
