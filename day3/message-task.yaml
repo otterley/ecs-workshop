@@ -20,40 +20,39 @@ Resources:
     Properties:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
-        Effect: Allow
-        Action: ["sts:AssumeRole"]
-        Principal:
-          Service: ecs-tasks.amazonaws.com
+        Statement:
+          - Effect: Allow
+            Action: ["sts:AssumeRole"]
+            Principal:
+              Service: ecs-tasks.amazonaws.com
       Policies:
         - PolicyName: AllowPublishEmail
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-            - Effect: Allow
-              Resource: !Ref MessageTopic
-              Action:
-              - sns:Publish
+              - Effect: Allow
+                Resource: !Ref MessageTopic
+                Action:
+                  - sns:Publish
         - PolicyName: AllowS3Get
           PolicyDocument:
             Version: 2012-10-17
             Statement:
-            - Effect: Allow
-              Resource:
-                !Join
-                - ''
-                - - "arn:aws:s3:::"
-                  - Fn::ImportValue: ecsworkshop:S3Bucket
-                  - "/*"
-              Action:
-              - s3:GetObject
+              - Effect: Allow
+                Resource: !Join
+                  - ""
+                  - - "arn:aws:s3:::"
+                    - Fn::ImportValue: ecsworkshop:S3Bucket
+                    - "/*"
+                Action:
+                  - s3:GetObject
 
   EmailTaskDefinition:
     Type: "AWS::ECS::TaskDefinition"
     Properties:
       ContainerDefinitions:
         - Name: SendMessage
-          Image:
-            !Join
+          Image: !Join
             - ":"
             - - Fn::ImportValue: ecsworkshop:ImageRepositoryUrl
               - latest
