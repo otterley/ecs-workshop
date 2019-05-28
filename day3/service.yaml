@@ -111,6 +111,19 @@ Resources:
       Port: 80
       Protocol: HTTP
 
+  HelloServiceListenerRule:
+    Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref HelloServiceTargetGroup
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - /
+      ListenerArn: !Ref HelloServiceListener
+      Priority: 1
+
 Outputs:
   Url:
     Description: Service URL
