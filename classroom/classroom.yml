@@ -663,6 +663,20 @@ Resources:
         - CidrIp: 0.0.0.0/0
           IpProtocol: "-1"
 
+  ImageRepository:
+    Type: "AWS::ECR::Repository"
+    Properties:
+      RepositoryPolicyText:
+        Version: 2012-10-17
+        Statement:
+          - Sid: AllowPull
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Effect: Allow
+            Action:
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchCheckLayerAvailability
+
 # These are the values output by the CloudFormation template. Be careful
 # about changing any of them, because of them are exported with specific
 # names so that the other task related CF templates can use them.
