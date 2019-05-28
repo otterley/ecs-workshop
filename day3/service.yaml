@@ -56,6 +56,8 @@ Resources:
       SchedulingStrategy: REPLICA
       ServiceName: HelloService
       TaskDefinition: !Ref HelloServiceTaskDefinition
+    Depends:
+      - HelloServiceListenerRule
 
   # Public load balancer, hosted in public subnets that is accessible
   # to the public, and is intended to route traffic to one or more public
