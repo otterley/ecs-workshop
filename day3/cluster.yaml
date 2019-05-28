@@ -130,6 +130,13 @@ Resources:
       Protocol: HTTP
 
 Outputs:
-  ECSCluster:
-    Description: ECS Cluster
-    Value: !Ref ECSCluster
+  PublicLoadBalancer:
+    Description: Public load balancer
+    Value: !Ref PublicLoadBalancer
+    Export:
+      Name: !Sub ${ClusterName}:PublicLoadBalancer
+  FrontEndTargetGroup:
+    Description: Front end LB target group
+    Value: !Ref FrontEndTargetGroup
+    Export:
+      Name: !Sub ${ClusterName}:FrontEndTargetGroup
