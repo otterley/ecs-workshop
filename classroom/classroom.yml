@@ -666,6 +666,9 @@ Resources:
   ImageRepository:
     Type: "AWS::ECR::Repository"
 
+  S3Bucket:
+    Type: "AWS::S3::Bucket"
+
 # These are the values output by the CloudFormation template. Be careful
 # about changing any of them, because of them are exported with specific
 # names so that the other task related CF templates can use them.
@@ -731,7 +734,12 @@ Outputs:
     Export:
       Name: !Sub ${EnvironmentName}:PublicLoadBalancerSG
   ImageRepository:
-    Description: Image repository
-    Value: !GetAtt ImageRepository.Arn
+    Description: Image repository URL
+    Value: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ImageRepository}"
     Export:
-      Name: !Sub ${EnvironmentName}:ImageRepository
+      Name: !Sub ${EnvironmentName}:ImageRepositoryUrl
+  S3Bucket:
+    Description: S3 Bucket
+    Value: !Ref S3Bucket
+    Export:
+      Name: !Sub ${EnvironmentName}:S3Bucket

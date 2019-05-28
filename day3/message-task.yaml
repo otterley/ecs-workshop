@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Sample ECS service
+
+Parameters:
+  Email:
+    Description: Email address
+    Type: String
+
+Resources:
+  MessageTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      DisplayName: Email
+      Subscription:
+        - Endpoint: !Ref Email
+          Protocol: email
+
+  ExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Effect: Allow
+        Action: ["sts:AssumeRole"]
+        Principal:
+          Service: ecs-tasks.amazonaws.com
+      Policies:
+        - PolicyName: AllowPublishEmail
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+            - Effect: Allow
+              Resource: !Ref MessageTopic
+              Action:
+              - sns:Publish
+        - PolicyName: AllowS3Get
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+            - Effect: Allow
+              Resource:
+                !Join
+                - ''
+                - - "arn:aws:s3:::"
+                  - Fn::ImportValue: ecsworkshop:S3Bucket
+                  - "/*"
+              Action:
+              - s3:GetObject
+
+  EmailTaskDefinition:
+    Type: "AWS::ECS::TaskDefinition"
+    Properties:
+      ContainerDefinitions:
+        - Name: SendMessage
+          Image:
+            !Join
+            - ":"
+            - - Fn::ImportValue: ecsworkshop:ImageRepositoryUrl
+              - latest
+          Cpu: 128
+          Memory: 128
+          MemoryReservation: 256
+          Essential: true
+      ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+      Family: sendMessage
