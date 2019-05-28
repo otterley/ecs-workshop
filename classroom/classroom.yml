@@ -741,3 +741,8 @@ Outputs:
     Value: !GetAtt PublicLoadBalancerSG.GroupId
     Export:
       Name: !Sub ${EnvironmentName}:PublicLoadBalancerSG
+  ImageRepository:
+    Description: Image repository
+    Value: !GetAtt ImageRepository.Arn
+    Export:
+      Name: !Sub ${EnvironmentName}:ImageRepository
