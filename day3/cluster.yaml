@@ -26,33 +26,6 @@ Resources:
     Properties:
       ClusterName: !Ref ClusterName
 
-  LoadBalancerSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Service load balancer
-      VpcId:
-        Fn::ImportValue: ecsworkshop:VpcId
-      SecurityGroupIngress:
-        - CidrIp: 0.0.0.0/0
-          IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-
-  InstanceSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Allow ingress from load balancer
-      VpcId:
-        Fn::ImportValue: ecsworkshop:VpcId
-      SecurityGroupIngress:
-        - SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
-          IpProtocol: tcp
-          FromPort: 1024
-          ToPort: 65535
-      SecurityGroupEgress:
-        - CidrIp: 0.0.0.0/0
-          IpProtocol: "-1"
-
   # Launch configuration for EC2 instances
   ContainerInstanceLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
@@ -64,7 +37,7 @@ Resources:
       InstanceMonitoring: true
       InstanceType: !Ref EC2InstanceType
       SecurityGroups:
-        - !Ref InstanceSecurityGroup
+        - Fn::ImportValue: ecsworkshop:InstanceSecurityGroup
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash -ex
