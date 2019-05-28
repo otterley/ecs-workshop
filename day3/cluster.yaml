@@ -93,7 +93,7 @@ Resources:
         - Fn::ImportValue: ecsworkshop:PublicSubnetTwo
         - Fn::ImportValue: ecsworkshop:PublicSubnetThree
       SecurityGroups:
-        - Fn::ImportValue: ecsworkshop.PublicLoadBalancerSG
+        - Fn::ImportValue: ecsworkshop:PublicLoadBalancerSG
 
   # A dummy target group is used to setup the ALB to just drop traffic
   # initially, before any real service target groups have been added.
