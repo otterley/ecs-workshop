@@ -531,6 +531,30 @@ Resources:
       RouteTableId: !Ref PrivateRouteTableThree
       SubnetId: !Ref PrivateSubnetThree
 
+  # A role used to allow AWS Autoscaling to inspect stats and adjust scalable targets
+  # on your AWS account
+  AutoScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [application-autoscaling.amazonaws.com]
+            Action: ["sts:AssumeRole"]
+      Path: /
+      Policies:
+        - PolicyName: service-autoscaling
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudwatch:DescribeAlarms
+                  - cloudwatch:PutMetricAlarm
+                  - ecs:DescribeServices
+                  - ecs:UpdateService
+                Resource: "*"
+
   # This is an IAM role which authorizes ECS to manage resources on your
   # account on your behalf, such as updating your load balancer with the
   # details of where your containers are, so that traffic can reach your
@@ -619,6 +643,20 @@ Resources:
         - CidrIp: 0.0.0.0/0
           IpProtocol: "-1"
 
+  PublicLoadBalancerSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Access to the public facing load balancer
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: "-1"
+
 # These are the values output by the CloudFormation template. Be careful
 # about changing any of them, because of them are exported with specific
 # names so that the other task related CF templates can use them.
@@ -658,6 +696,11 @@ Outputs:
     Value: !Ref "PrivateSubnetThree"
     Export:
       Name: !Sub ${EnvironmentName}:PrivateSubnetThree
+  AutoScalingRole:
+    Description: Auto Scaling Role
+    Value: !Ref AutoScalingRole
+    Export:
+      Name: !Sub ${EnvironmentName}:AutoScalingRole
   EcsServiceRole:
     Description: ECS service Role
     Value: !Ref EcsServiceRole
@@ -673,3 +716,8 @@ Outputs:
     Value: !GetAtt InstanceSecurityGroup.GroupId
     Export:
       Name: !Sub ${EnvironmentName}:InstanceSecurityGroup
+  PublicLoadBalancerSG:
+    Description: Public load balancer security group
+    Value: !GetAtt PublicLoadBalancerSG.GroupId
+    Export:
+      Name: !Sub ${EnvironmentName}:PublicLoadBalancerSG

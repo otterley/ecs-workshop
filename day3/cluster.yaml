@@ -1,0 +1,135 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create ECS cluster
+
+Parameters:
+  ClusterName:
+    Description: Cluster name
+    Type: String
+    AllowedPattern: "^ecs-workshop-user-[0-9]+$"
+  EC2InstanceType:
+    Type: String
+    # We need these to be xlarge so we don't run out of ENIs
+    Default: t3a.xlarge
+    Description: EC2 instance type
+  ImageId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id
+    Description: EC2 AMI ID
+  ClusterSize:
+    Type: Number
+    Default: 3
+    Description: Number of EC2 instances comprising the ECS cluster
+
+Resources:
+  ECSCluster:
+    Type: "AWS::ECS::Cluster"
+    Properties:
+      ClusterName: !Ref ClusterName
+
+  # Launch configuration for EC2 instances
+  ContainerInstanceLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      AssociatePublicIpAddress: false
+      IamInstanceProfile:
+        Fn::ImportValue: ecsworkshop:EcsInstanceProfile
+      ImageId: !Ref ImageId
+      InstanceMonitoring: true
+      InstanceType: !Ref EC2InstanceType
+      SecurityGroups:
+        - Fn::ImportValue: ecsworkshop:InstanceSecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -ex
+          echo "ECS_CLUSTER=${ClusterName}" >> /etc/ecs/ecs.config
+          yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm \
+                         aws-cfn-bootstrap
+          systemctl enable amazon-ssm-agent
+          systemctl start amazon-ssm-agent
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ContainerInstanceAutoScalingGroup --region ${AWS::Region}
+
+  # Auto Scaling Group containing the container instances
+  ContainerInstanceAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      DesiredCapacity: !Ref ClusterSize
+      MaxSize: !Ref ClusterSize
+      MinSize: "1"
+      HealthCheckType: EC2
+      LaunchConfigurationName: !Ref ContainerInstanceLaunchConfig
+      Tags:
+        - Key: Name
+          Value: !Sub "ecs-instance-${ClusterName}"
+          PropagateAtLaunch: true
+      VPCZoneIdentifier:
+        - Fn::ImportValue: ecsworkshop:PrivateSubnetOne
+        - Fn::ImportValue: ecsworkshop:PrivateSubnetTwo
+        - Fn::ImportValue: ecsworkshop:PrivateSubnetThree
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT5M
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MaxBatchSize: 1
+        MinInstancesInService: 2
+        MinSuccessfulInstancesPercent: 100
+        PauseTime: PT10M
+
+  # Public load balancer, hosted in public subnets that is accessible
+  # to the public, and is intended to route traffic to one or more public
+  # facing services. This is used for accepting traffic from the public
+  # internet and directing it to public facing microservices
+  PublicLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: "30"
+      Subnets:
+        # The load balancer is placed into the public subnets, so that traffic
+        # from the internet can reach the load balancer directly via the internet gateway
+        - Fn::ImportValue: ecsworkshop:PublicSubnetOne
+        - Fn::ImportValue: ecsworkshop:PublicSubnetTwo
+        - Fn::ImportValue: ecsworkshop:PublicSubnetThree
+      SecurityGroups:
+        - Fn::ImportValue: ecsworkshop.PublicLoadBalancerSG
+
+  # A dummy target group is used to setup the ALB to just drop traffic
+  # initially, before any real service target groups have been added.
+  FrontEndTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      TargetType: ip
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /health
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: "200-299"
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 10
+      VpcId:
+        Fn::ImportValue: ecsworkshop:VpcId
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: "5"
+        - Key: slow_start.duration_seconds
+          Value: "60"
+
+  PublicLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref FrontEndTargetGroup
+          Type: forward
+      LoadBalancerArn: !Ref PublicLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+Outputs:
+  ECSCluster:
+    Description: ECS Cluster
+    Value: !Ref ECSCluster
