@@ -105,6 +105,11 @@ Resources:
           Value: "5"
         - Key: slow_start.duration_seconds
           Value: "60"
+      Tags:
+        - Key: Owner
+          Value: !Ref ClusterName
+        - Key: Service
+          Value: hello
 
   HelloServiceListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
