@@ -65,7 +65,7 @@ Resources:
           MemoryReservation: 128
           Essential: true
       ExecutionRoleArn: !GetAtt ExecutionRole.Arn
-      Family: SendMessage
+      Family: !Sub "${UserName}:SendMessage"
 
 Outputs:
   MessageTaskDefinition:
