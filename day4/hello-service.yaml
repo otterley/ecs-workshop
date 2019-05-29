@@ -56,7 +56,6 @@ Resources:
         - Field: attribute:ecs.availability-zone
           Type: spread
       SchedulingStrategy: REPLICA
-      ServiceName: HelloService
       TaskDefinition: !Ref HelloServiceTaskDefinition
     DependsOn:
       - HelloServiceListenerRule
