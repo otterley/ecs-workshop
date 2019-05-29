@@ -22,11 +22,13 @@ async function main() {
     const s3 = new aws.S3();
     const sns = new aws.SNS();
 
+    console.log(`Fetching object: s3://${s3Bucket}/${s3Key}`);
     const obj = await s3.getObject({
         Bucket: s3Bucket,
         Key: s3Key
     }).promise();
 
+    console.log(`Sending data to topic ${snsTopic}`)
     await sns.publish({
         TopicArn: snsTopicArn,
         Subject: "Here is your data!",
