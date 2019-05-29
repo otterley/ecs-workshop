@@ -27,13 +27,13 @@ Resources:
           - - Fn::ImportValue: ecsworkshop:HelloServiceRepositoryUrl
             - latest
           PortMappings:
-            - ContainerPort: 80
+            - ContainerPort: !Ref ListenPort
           Cpu: 512
           Memory: 1024
           MemoryReservation: 512
           Essential: true
           Environment:
-            - Name: Port
+            - Name: PORT
               Value: !Ref ListenPort
       Family: !Sub "${ClusterName}-hello"
       NetworkMode: bridge
