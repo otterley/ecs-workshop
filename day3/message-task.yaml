@@ -72,11 +72,13 @@ Resources:
               Value: hello.txt
             - Name: SNS_TOPIC_ARN
               Value: !Ref MessageTopic
+            - Name: AWS_REGION
+              Value: !Sub "${AWS::Region}"
           LogConfiguration:
             LogDriver: awslogs
             Options:
               awslogs-create-group: "true"
-              awslogs-region: !Sub ${AWS::Region}
+              awslogs-region: !Sub "${AWS::Region}"
               awslogs-group: !Sub "sendMessage-${UserName}"
       TaskRoleArn: !GetAtt TaskRole.Arn
       Family: !Sub "${UserName}-SendMessage"
