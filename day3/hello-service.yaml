@@ -78,6 +78,9 @@ Resources:
         - Fn::ImportValue: ecsworkshop:PublicSubnetThree
       SecurityGroups:
         - Fn::ImportValue: ecsworkshop:PublicLoadBalancerSG
+      Tags:
+        - Key: Owner
+          Value: !Ref ClusterName
 
   # A dummy target group is used to setup the ALB to just drop traffic
   # initially, before any real service target groups have been added.
