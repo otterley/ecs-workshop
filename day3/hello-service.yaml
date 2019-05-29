@@ -33,7 +33,7 @@ Resources:
           Memory: 1024
           MemoryReservation: 512
           Essential: true
-      Family: hello
+      Family: !Sub "${ClusterName}-hello"
       NetworkMode: bridge
 
   HelloService:
