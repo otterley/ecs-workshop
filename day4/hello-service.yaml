@@ -11,6 +11,10 @@ Parameters:
     Type: Number
     Default: 3
     MinValue: 2
+  ListenPort:
+    Description: Listening port for server
+    Type: Number
+    Default: 8080
 
 Resources:
   HelloServiceTaskDefinition:
@@ -28,6 +32,9 @@ Resources:
           Memory: 1024
           MemoryReservation: 512
           Essential: true
+          Environment:
+            - Name: Port
+              Value: !Ref ListenPort
       Family: !Sub "${ClusterName}-hello"
       NetworkMode: bridge
 
@@ -43,7 +50,7 @@ Resources:
       LaunchType: EC2
       LoadBalancers:
         - ContainerName: HelloService
-          ContainerPort: 80
+          ContainerPort: !Ref ListenPort
           TargetGroupArn: !Ref HelloServiceTargetGroup
       PlacementStrategies:
         - Field: attribute:ecs.availability-zone
