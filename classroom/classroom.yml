@@ -90,6 +90,7 @@ Resources:
                   - iam:GetInstanceProfile
                   - iam:GetRole
                   - iam:GetRolePolicy
+                  - iam:List*
                   - iam:PassRole
                   - iam:PutRolePolicy
                   - iam:RemoveRoleFromInstanceProfile

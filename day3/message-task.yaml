@@ -1,7 +1,11 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Sample ECS service
+Description: Sample ECS task
 
 Parameters:
+  UserName:
+    Description: User name
+    Type: String
+    AllowedPattern: "^ecs-workshop-user-[0-9]+$"
   Email:
     Description: Email address
     Type: String
@@ -62,3 +66,10 @@ Resources:
           Essential: true
       ExecutionRoleArn: !GetAtt ExecutionRole.Arn
       Family: sendMessage
+
+Outputs:
+  EmailTaskDefinition:
+    Description: Email task definition
+    Value: !Ref EmailTaskDefinition
+    Export:
+      Name: !Sub "${UserName}:EmailTaskDefinition"
