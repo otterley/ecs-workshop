@@ -665,7 +665,10 @@ Resources:
         - CidrIp: 0.0.0.0/0
           IpProtocol: "-1"
 
-  ImageRepository:
+  ForwarderTaskRepository:
+    Type: "AWS::ECR::Repository"
+
+  HelloServiceRepository:
     Type: "AWS::ECR::Repository"
 
   S3Bucket:
@@ -735,11 +738,16 @@ Outputs:
     Value: !GetAtt PublicLoadBalancerSG.GroupId
     Export:
       Name: !Sub ${EnvironmentName}:PublicLoadBalancerSG
-  ImageRepository:
+  ForwarderTaskRepositoryUrl:
     Description: Image repository URL
-    Value: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ImageRepository}"
+    Value: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ForwarderTaskRepository}"
     Export:
-      Name: !Sub ${EnvironmentName}:ImageRepositoryUrl
+      Name: !Sub ${EnvironmentName}:ForwarderTaskRepositoryUrl
+  HelloServiceRepositoryUrl:
+    Description: Image repository URL
+    Value: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${HelloServiceRepository}"
+    Export:
+      Name: !Sub ${EnvironmentName}:HelloServiceRepositoryUrl
   S3Bucket:
     Description: S3 Bucket
     Value: !Ref S3Bucket
