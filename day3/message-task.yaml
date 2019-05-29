@@ -64,6 +64,8 @@ Resources:
           Memory: 256
           MemoryReservation: 128
           Essential: true
+          LogConfiguration:
+            LogDriver: awslogs
       ExecutionRoleArn: !GetAtt ExecutionRole.Arn
       Family: !Sub "${UserName}-SendMessage"
 
