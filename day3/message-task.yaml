@@ -51,7 +51,7 @@ Resources:
                 Action:
                   - s3:GetObject
 
-  EmailTaskDefinition:
+  MessageTaskDefinition:
     Type: "AWS::ECS::TaskDefinition"
     Properties:
       ContainerDefinitions:
@@ -65,11 +65,11 @@ Resources:
           MemoryReservation: 128
           Essential: true
       ExecutionRoleArn: !GetAtt ExecutionRole.Arn
-      Family: sendMessage
+      Family: SendMessage
 
 Outputs:
-  EmailTaskDefinition:
-    Description: Email task definition
-    Value: !Ref EmailTaskDefinition
+  MessageTaskDefinition:
+    Description: Message task definition
+    Value: !Ref MessageTaskDefinition
     Export:
-      Name: !Sub "${UserName}:EmailTaskDefinition"
+      Name: !Sub "${UserName}:MessageTaskDefinition"
