@@ -52,6 +52,7 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEC2FullAccess
         - arn:aws:iam::aws:policy/CloudWatchFullAccess
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+        - arn:aws:iam::aws:policy/AWSResourceGroupsReadOnlyAccess
       Policies:
         - PolicyName: allow-session-manager
           PolicyDocument:
