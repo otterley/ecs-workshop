@@ -28,7 +28,7 @@ async function main() {
         Key: s3Key
     }).promise();
 
-    console.log(`Sending data to topic ${snsTopic}`);
+    console.log(`Sending data to topic ${snsTopicArn}`);
     await sns.publish({
         TopicArn: snsTopicArn,
         Subject: "Here is your data!",
