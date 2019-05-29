@@ -19,7 +19,7 @@ Resources:
       ContainerDefinitions:
         - Name: HelloService
           Image: !Join
-          - :
+          - ":"
           - - Fn::ImportValue: ecsworkshop:HelloServiceRepositoryUrl
             - latest
           PortMappings:
