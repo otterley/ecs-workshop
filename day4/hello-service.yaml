@@ -135,12 +135,18 @@ Resources:
       ListenerArn: !Ref HelloServiceListener
       Priority: 1
 
+
   HelloServiceScalingPolicy:
     Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
     Properties:
       PolicyName: ScaleWithCpu
       PolicyType: TargetTrackingScaling
-      ResourceId: !Sub "service/${ClusterName}/${HelloService}"
+      ResourceId: 
+        !Join 
+        - "/"
+        - - service
+          - !Ref ClusterName
+          - !GetAtt HelloService.Name
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
       TargetTrackingScalingPolicyConfiguration:
