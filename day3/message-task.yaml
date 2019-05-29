@@ -19,7 +19,7 @@ Resources:
         - Endpoint: !Ref Email
           Protocol: email
 
-  ExecutionRole:
+  TaskRole:
     Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
@@ -70,7 +70,7 @@ Resources:
               awslogs-create-group: "true"
               awslogs-region: !Sub ${AWS::Region}
               awslogs-group: sendMessage
-      ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+      TaskRoleArn: !GetAtt TaskRole.Arn
       Family: !Sub "${UserName}-SendMessage"
 
 Outputs:
