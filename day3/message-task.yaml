@@ -67,7 +67,7 @@ Resources:
           LogConfiguration:
             LogDriver: awslogs
             Options:
-              awslogs-create-group: true
+              awslogs-create-group: "true"
               awslogs-region: !Sub ${AWS::Region}
               awslogs-group: sendMessage
       ExecutionRoleArn: !GetAtt ExecutionRole.Arn
