@@ -10,11 +10,20 @@ const HOST = '0.0.0.0';
 
 const hostname = os.hostname();
 
+function blockCpuFor(ms) {
+  var startTime = new Date().getTime();
+  var result = 0
+  while (new Date().getTime() < startTime + ms) {
+    result += Math.random() * Math.random();
+  }
+}
+
 // App
 const app = express();
 app.get('/', (req, res) => {
-    const time = new Date(Date.now());
-    res.send(`
+  blockCpuFor(100);
+  const time = new Date(Date.now());
+  res.send(`
   <!DOCTYPE html>
   <html>
     <head>
@@ -34,19 +43,19 @@ app.get('/', (req, res) => {
 const server = http.createServer(app);
 
 process.on('SIGTERM', () => {
-    console.info('SIGTERM signal received.');
-    console.log('Closing HTTP server.');
-    server.close(() => {
-        console.log('HTTP server closed.');
-    });
+  console.info('SIGTERM signal received.');
+  console.log('Closing HTTP server.');
+  server.close(() => {
+    console.log('HTTP server closed.');
+  });
 });
 
 process.on('SIGINT', () => {
-    console.info('SIGINT signal received.');
-    console.log('Closing HTTP server.');
-    server.close(() => {
-        console.log('HTTP server closed.');
-    });
+  console.info('SIGINT signal received.');
+  console.log('Closing HTTP server.');
+  server.close(() => {
+    console.log('HTTP server closed.');
+  });
 });
 
 server.listen(PORT);
