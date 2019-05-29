@@ -30,7 +30,7 @@ async function main() {
     await sns.publish({
         TopicArn: snsTopicArn,
         Subject: "Here is your data!",
-        Message: obj.Body
+        Message: obj.Body.toString()
     }).promise();
 }
 
