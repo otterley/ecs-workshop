@@ -66,6 +66,10 @@ Resources:
           Essential: true
           LogConfiguration:
             LogDriver: awslogs
+            Options:
+              awslogs-create-group: true
+              awslogs-region: !Sub ${AWS::Region}
+              awslogs-group: sendMessage
       ExecutionRoleArn: !GetAtt ExecutionRole.Arn
       Family: !Sub "${UserName}-SendMessage"
 
