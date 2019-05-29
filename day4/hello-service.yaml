@@ -142,6 +142,7 @@ Resources:
       PolicyType: TargetTrackingScaling
       ResourceId: !Sub "service/${ClusterName}/${HelloService}"
       ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
       TargetTrackingScalingPolicyConfiguration:
         PredefinedMetricSpecification:
           PredefinedMetricType: ECSServiceAverageCPUUtilization
