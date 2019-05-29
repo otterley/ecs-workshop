@@ -135,6 +135,18 @@ Resources:
       ListenerArn: !Ref HelloServiceListener
       Priority: 1
 
+  HelloServiceScalingPolicy:
+    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
+    Properties:
+      PolicyName: ScaleWithCpu
+      PolicyType: TargetTrackingScaling
+      ResourceId: !Sub "service/${ClusterName}/${HelloService}"
+      ScalableDimension: ecs:service:DesiredCount
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        TargetValue: 80
+
 Outputs:
   Url:
     Description: Service URL
