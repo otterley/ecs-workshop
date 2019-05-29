@@ -21,7 +21,7 @@ function blockCpuFor(ms) {
 // App
 const app = express();
 app.get('/', (req, res) => {
-  blockCpuFor(100);
+  blockCpuFor(10);
   const time = new Date(Date.now());
   res.send(`
   <!DOCTYPE html>
