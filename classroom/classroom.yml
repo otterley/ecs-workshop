@@ -642,8 +642,7 @@ Resources:
       GroupDescription: Allow all egress
       VpcId: !Ref VPC
       SecurityGroupIngress:
-        - SourceSecurityGroupId:
-            Fn::ImportValue: ecsworkshop:PublicLoadBalancerSG
+        - SourceSecurityGroupId: !Ref PublicLoadBalancerSG
           IpProtocol: tcp
           FromPort: 1024
           ToPort: 65535
