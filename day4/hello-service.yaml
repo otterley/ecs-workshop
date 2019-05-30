@@ -153,6 +153,7 @@ Resources:
             Statement:
               - Effect: "Allow"
                 Action: ecs:UpdateService
+                Resource: !Ref HelloService
 
 
   HelloServiceScalableTarget:
