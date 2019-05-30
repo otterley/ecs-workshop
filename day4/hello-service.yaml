@@ -23,9 +23,9 @@ Resources:
       ContainerDefinitions:
         - Name: HelloService
           Image: !Join
-          - ":"
-          - - Fn::ImportValue: ecsworkshop:HelloServiceRepositoryUrl
-            - latest
+            - ":"
+            - - Fn::ImportValue: ecsworkshop:HelloServiceRepositoryUrl
+              - latest
           PortMappings:
             - ContainerPort: !Ref ListenPort
           Cpu: 512
@@ -135,20 +135,46 @@ Resources:
       ListenerArn: !Ref HelloServiceListener
       Priority: 1
 
+  HelloServiceScalingRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - application-autoscaling.amazonaws.com
+            Action: ["sts:AssumeRole"]
+      Policies:
+        - PolicyName: adjust-service-desired-count
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: ecs:UpdateService
+
+
+  HelloServiceScalableTarget:
+    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
+    Properties:
+      MaxCapacity: 1000
+      MinCapacity: 3
+      ResourceId: !Join
+        - "/"
+        - - service
+          - !Ref ClusterName
+          - !GetAtt HelloService.Name
+      RoleARN: !GetAtt HelloServiceScalingRole.Arn
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
 
   HelloServiceScalingPolicy:
     Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
     Properties:
       PolicyName: ScaleWithCpu
       PolicyType: TargetTrackingScaling
-      ResourceId: 
-        !Join 
-        - "/"
-        - - service
-          - !Ref ClusterName
-          - !GetAtt HelloService.Name
-      ScalableDimension: ecs:service:DesiredCount
-      ServiceNamespace: ecs
+      ScalingTargetId: !Ref HelloServiceScalableTarget
       TargetTrackingScalingPolicyConfiguration:
         PredefinedMetricSpecification:
           PredefinedMetricType: ECSServiceAverageCPUUtilization
