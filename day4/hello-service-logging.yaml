@@ -1,0 +1,193 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Sample ECS service
+
+Parameters:
+  ClusterName:
+    Description: Cluster name
+    Type: String
+    AllowedPattern: "^ecs-workshop-user-[0-9]+$"
+  DesiredCount:
+    Description: Number of tasks to launch for the service
+    Type: Number
+    Default: 3
+    MinValue: 2
+  ListenPort:
+    Description: Listening port for server
+    Type: Number
+    Default: 8080
+
+Resources:
+  HelloServiceTaskDefinition:
+    Type: "AWS::ECS::TaskDefinition"
+    Properties:
+      ContainerDefinitions:
+        - Name: HelloService
+          Image: !Join
+            - ":"
+            - - Fn::ImportValue: ecsworkshop:HelloServiceRepositoryUrl
+              - latest
+          PortMappings:
+            - ContainerPort: !Ref ListenPort
+          Cpu: 1024
+          Memory: 1024
+          MemoryReservation: 512
+          Essential: true
+          Environment:
+            - Name: PORT
+              Value: !Ref ListenPort
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-create-group: "true"
+              awslogs-region: !Sub "${AWS::Region}"
+              awslogs-group: !Sub "helloServer-${ClusterName}"
+      Family: !Sub "${ClusterName}-hello"
+      NetworkMode: bridge
+
+  HelloService:
+    Type: "AWS::ECS::Service"
+    Properties:
+      Cluster: !Ref ClusterName
+      DeploymentConfiguration:
+        MinimumHealthyPercent: 100
+        MaximumPercent: 200
+      DesiredCount: !Ref DesiredCount
+      HealthCheckGracePeriodSeconds: 60
+      LaunchType: EC2
+      LoadBalancers:
+        - ContainerName: HelloService
+          ContainerPort: !Ref ListenPort
+          TargetGroupArn: !Ref HelloServiceTargetGroup
+      PlacementStrategies:
+        - Field: attribute:ecs.availability-zone
+          Type: spread
+      SchedulingStrategy: REPLICA
+      TaskDefinition: !Ref HelloServiceTaskDefinition
+    DependsOn:
+      - HelloServiceListenerRule
+
+  # Public load balancer, hosted in public subnets that is accessible
+  # to the public, and is intended to route traffic to one or more public
+  # facing services. This is used for accepting traffic from the public
+  # internet and directing it to public facing microservices
+  HelloServiceLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: "30"
+      Subnets:
+        # The load balancer is placed into the public subnets, so that traffic
+        # from the internet can reach the load balancer directly via the internet gateway
+        - Fn::ImportValue: ecsworkshop:PublicSubnetOne
+        - Fn::ImportValue: ecsworkshop:PublicSubnetTwo
+        - Fn::ImportValue: ecsworkshop:PublicSubnetThree
+      SecurityGroups:
+        - Fn::ImportValue: ecsworkshop:PublicLoadBalancerSG
+      Tags:
+        - Key: Owner
+          Value: !Ref ClusterName
+
+  # A dummy target group is used to setup the ALB to just drop traffic
+  # initially, before any real service target groups have been added.
+  HelloServiceTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      TargetType: instance
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: "200-299"
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 10
+      VpcId:
+        Fn::ImportValue: ecsworkshop:VpcId
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: "5"
+        - Key: slow_start.duration_seconds
+          Value: "60"
+      Tags:
+        - Key: Owner
+          Value: !Ref ClusterName
+        - Key: Service
+          Value: hello
+
+  HelloServiceListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref HelloServiceTargetGroup
+          Type: forward
+      LoadBalancerArn: !Ref HelloServiceLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  HelloServiceListenerRule:
+    Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref HelloServiceTargetGroup
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - /
+      ListenerArn: !Ref HelloServiceListener
+      Priority: 1
+
+  HelloServiceScalingRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - application-autoscaling.amazonaws.com
+            Action: ["sts:AssumeRole"]
+      Policies:
+        - PolicyName: adjust-service-desired-count
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: ecs:UpdateService
+                Resource: !Ref HelloService
+
+
+  HelloServiceScalableTarget:
+    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
+    Properties:
+      MaxCapacity: 1000
+      MinCapacity: 3
+      ResourceId: !Join
+        - "/"
+        - - service
+          - !Ref ClusterName
+          - !GetAtt HelloService.Name
+      RoleARN: !GetAtt HelloServiceScalingRole.Arn
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+
+  HelloServiceScalingPolicy:
+    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
+    Properties:
+      PolicyName: ScaleWithCpu
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref HelloServiceScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        TargetValue: 80
+
+Outputs:
+  Url:
+    Description: Service URL
+    Value: !GetAtt HelloServiceLoadBalancer.DNSName
