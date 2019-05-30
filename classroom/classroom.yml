@@ -116,14 +116,6 @@ Resources:
                 Action:
                   - route53:*
                 Resource: "*"
-        - PolicyName: serverless
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "*"
-                Resource: "*"
 
   WorkshopLeaderWorkspace:
     Type: AWS::Cloud9::EnvironmentEC2
