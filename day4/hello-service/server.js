@@ -20,6 +20,7 @@ function blockCpuFor(ms) {
 
 // App
 const app = express();
+app.enable('trust proxy');
 app.get('/', (req, res) => {
   blockCpuFor(10);
   const time = new Date(Date.now());
@@ -33,11 +34,12 @@ app.get('/', (req, res) => {
     </head>
     <body>
       <p>Hello visitor from ${req.ip}!</p>
-      <p>This is container host ${hostname}.</p>
+      <p>This is container ${hostname}.</p>
       <p>Current time: ${time.toString()}</p>
     </body>
   </html>
   `);
+  console.log(`Request received from ${req.ip}`);
 });
 
 const server = http.createServer(app);
