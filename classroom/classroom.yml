@@ -599,27 +599,10 @@ Resources:
             Action: ["sts:AssumeRole"]
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
       Path: /
       Policies:
-        - PolicyName: ecs-instance
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - ecs:CreateCluster
-                  - ecs:DeregisterContainerInstance
-                  - ecs:DiscoverPollEndpoint
-                  - ecs:Poll
-                  - ecs:RegisterContainerInstance
-                  - ecs:StartTelemetrySession
-                  - ecs:Submit*
-                  - ecr:GetAuthorizationToken
-                  - ecr:BatchCheckLayerAvailability
-                  - ecr:GetDownloadUrlForLayer
-                  - ecr:BatchGetImage
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: "*"
         - PolicyName: signal-cloudformation
           PolicyDocument:
             Statement:
