@@ -29,6 +29,132 @@ Resources:
   # Launch configuration for EC2 instances
   ContainerInstanceLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          default:
+            - 00_install-packages
+            - 01_setupCfnHup
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+          UpdateEnvironment:
+            - 02_config-amazon-cloudwatch-agent
+            - 03_restart_amazon-cloudwatch-agent
+        00_install-packages:
+          packages:
+            rpm:
+              amazon-ssm-agent: https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+              amazon-cloudwatch-agent: https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
+          commands:
+            01_enable_ssm_agent:
+              command: systemctl enable amazon-ssm-agent
+            02_start_ssm_agent:
+              command: systemctl start amazon-ssm-agent
+        # Definition of json configuration of AmazonCloudWatchAgent, you can change the configuration below.
+        02_config-amazon-cloudwatch-agent:
+          files:
+            '/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json':
+              content: !Sub |
+                {
+                  "metrics": {
+                    "append_dimensions": {
+                      "AutoScalingGroupName": "${!aws:AutoScalingGroupName}",
+                      "ImageId": "${!aws:ImageId}",
+                      "InstanceId": "${!aws:InstanceId}",
+                      "InstanceType": "${!aws:InstanceType}"
+                    },
+                    "metrics_collected": {
+                      "mem": {
+                        "measurement": [
+                          "mem_used_percent"
+                        ]
+                      },
+                      "swap": {
+                        "measurement": [
+                          "swap_used_percent"
+                        ]
+                      }
+                    }
+                  },
+                  "logs": {
+                    "logs_collected": {
+                      "files": {
+                        "collect_list": [
+                          {
+                            "file_path": "/var/log/dmesg",
+                            "log_group_name": "/var/log/dmesg"
+                          },
+                          {
+                            "file_path": "/var/log/messages",
+                            "log_group_name": "/var/log/messages",
+                            "timestamp_format": "%b %-d %H:%M:%S"
+                          },
+                          {
+                            "file_path": "/var/log/ecs/ecs-init.log",
+                            "log_group_name": "/var/log/ecs/ecs-init.log",
+                            "timestamp_format": "%Y-%m-%dT%H:%M:%SZ"
+                          },
+                          {
+                            "file_path": "/var/log/ecs/ecs-agent.log.*",
+                            "log_group_name": "/var/log/ecs/ecs-agent.log",
+                            "timestamp_format": "%Y-%m-%dT%H:%M:%SZ"
+                          },
+                          {
+                            "file_path": "/var/log/ecs/audit.log.*",
+                            "log_group_name": "/var/log/ecs/audit.log",
+                            "timestamp_format": "%Y-%m-%dT%H:%M:%SZ"
+                          }
+                        ]
+                      }
+                    },
+                    "log_stream_name": "{instance_id}"
+                  }
+                }
+        # Invoke amazon-cloudwatch-agent-ctl to restart the AmazonCloudWatchAgent.
+        03_restart_amazon-cloudwatch-agent:
+          commands:
+            01_stop_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a stop
+            02_start_service:
+              command: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
+        # Cfn-hup setting, it is to monitor the change of metadata.
+        # When there is change in the contents of json file in the metadata section, cfn-hup will call cfn-init to restart the AmazonCloudWatchAgent.
+        01_setupCfnHup:
+          files:
+             '/etc/cfn/cfn-hup.conf':
+               content: !Sub |
+                 [main]
+                 stack=${AWS::StackId}
+                 region=${AWS::Region}
+                 interval=1
+               mode: '000400'
+               owner: root
+               group: root
+             '/etc/cfn/hooks.d/amazon-cloudwatch-agent-auto-reloader.conf':
+               content: !Sub |
+                 [cfn-auto-reloader-hook]
+                 triggers=post.update
+                 path=Resources.ContainerInstanceLaunchConfig.Metadata.AWS::CloudFormation::Init.02_config-amazon-cloudwatch-agent
+                 action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource ContainerInstanceLaunchConfig --region ${AWS::Region} --configsets UpdateEnvironment
+                 runas=root
+               mode: '000400'
+               owner: root
+               group: root
+             "/lib/systemd/system/cfn-hup.service":
+                content: !Sub |
+                  [Unit]
+                  Description=cfn-hup daemon
+                  [Service]
+                  Type=simple
+                  ExecStart=/opt/aws/bin/cfn-hup
+                  Restart=always
+                  [Install]
+                  WantedBy=multi-user.target
+          commands:
+            01enable_cfn_hup:
+              command: systemctl enable cfn-hup.service
+            02start_cfn_hup:
+              command: systemctl start cfn-hup.service
     Properties:
       AssociatePublicIpAddress: false
       IamInstanceProfile:
@@ -40,116 +166,11 @@ Resources:
         - Fn::ImportValue: ecsworkshop:InstanceSecurityGroup
       UserData:
         Fn::Base64: !Sub |
-          Content-Type: multipart/mixed; boundary="==BOUNDARY=="
-          MIME-Version: 1.0
-
-          --==BOUNDARY==
-          Content-Type: text/x-shellscript; charset="us-ascii"
-          #!/usr/bin/env bash
-          # Install awslogs and the jq JSON parser
-          yum install -y awslogs jq
-
-          # Inject the CloudWatch Logs configuration file contents
-          cat > /etc/awslogs/awslogs.conf <<- EOF
-          [general]
-          state_file = /var/lib/awslogs/agent-state
-
-          [/var/log/dmesg]
-          file = /var/log/dmesg
-          log_group_name = /var/log/dmesg
-          log_stream_name = {cluster}/{container_instance_id}
-
-          [/var/log/messages]
-          file = /var/log/messages
-          log_group_name = /var/log/messages
-          log_stream_name = {cluster}/{container_instance_id}
-          datetime_format = %b %d %H:%M:%S
-
-          [/var/log/ecs/ecs-init.log]
-          file = /var/log/ecs/ecs-init.log
-          log_group_name = /var/log/ecs/ecs-init.log
-          log_stream_name = {cluster}/{container_instance_id}
-          datetime_format = %Y-%m-%dT%H:%M:%SZ
-
-          [/var/log/ecs/ecs-agent.log]
-          file = /var/log/ecs/ecs-agent.log.*
-          log_group_name = /var/log/ecs/ecs-agent.log
-          log_stream_name = {cluster}/{container_instance_id}
-          datetime_format = %Y-%m-%dT%H:%M:%SZ
-
-          [/var/log/ecs/audit.log]
-          file = /var/log/ecs/audit.log.*
-          log_group_name = /var/log/ecs/audit.log
-          log_stream_name = {cluster}/{container_instance_id}
-          datetime_format = %Y-%m-%dT%H:%M:%SZ
-
-          EOF
-
-          --==BOUNDARY==
-          Content-Type: text/x-shellscript; charset="us-ascii"
-          #!/usr/bin/env bash
-          # Write the awslogs bootstrap script to /usr/local/bin/bootstrap-awslogs.sh
-          cat > /usr/local/bin/bootstrap-awslogs.sh <<- 'EOF'
-          #!/usr/bin/env bash
-          exec 2>>/var/log/ecs/cloudwatch-logs-start.log
-          set -x
-
-          until curl -s http://localhost:51678/v1/metadata
-          do
-            sleep 1
-          done
-
-          # Set the region to send CloudWatch Logs data to (the region where the container instance is located)
-          cp /etc/awslogs/awscli.conf /etc/awslogs/awscli.conf.bak
-          region=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)
-          sed -i -e "s/region = .*/region = $region/g" /etc/awslogs/awscli.conf
-
-          # Grab the cluster and container instance ARN from instance metadata
-          cluster=$(curl -s http://localhost:51678/v1/metadata | jq -r '. | .Cluster')
-          container_instance_id=$(curl -s http://localhost:51678/v1/metadata | jq -r '. | .ContainerInstanceArn' | awk -F/ '{print $2}' )
-
-          # Replace the cluster name and container instance ID placeholders with the actual values
-          cp /etc/awslogs/awslogs.conf /etc/awslogs/awslogs.conf.bak
-          sed -i -e "s/{cluster}/$cluster/g" /etc/awslogs/awslogs.conf
-          sed -i -e "s/{container_instance_id}/$container_instance_id/g" /etc/awslogs/awslogs.conf
-          EOF
-
-          --==BOUNDARY==
-          Content-Type: text/x-shellscript; charset="us-ascii"
-          #!/usr/bin/env bash
-          # Write the bootstrap-awslogs systemd unit file to /etc/systemd/system/bootstrap-awslogs.service
-          cat > /etc/systemd/system/bootstrap-awslogs.service <<- EOF
-          [Unit]
-          Description=Bootstrap awslogs agent
-          Requires=ecs.service
-          After=ecs.service
-          Before=awslogsd.service
-
-          [Service]
-          Type=oneshot
-          RemainAfterExit=yes
-          ExecStart=/usr/local/bin/bootstrap-awslogs.sh
-
-          [Install]
-          WantedBy=awslogsd.service
-          EOF
-
-          --==BOUNDARY==
-          Content-Type: text/x-shellscript; charset="us-ascii"
-          #!/bin/sh
-          chmod +x /usr/local/bin/bootstrap-awslogs.sh
-          systemctl daemon-reload
-          systemctl enable bootstrap-awslogs.service
-          systemctl enable awslogsd.service
-          systemctl start awslogsd.service --no-block
+          #!/bin/bash
           echo "ECS_CLUSTER=${ClusterName}" >> /etc/ecs/ecs.config
-          yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm \
-                          aws-cfn-bootstrap
-          systemctl enable amazon-ssm-agent
-          systemctl start amazon-ssm-agent
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ContainerInstanceAutoScalingGroup --region ${AWS::Region}
-          --==BOUNDARY==--
-
+          yum -y install aws-cfn-bootstrap
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --resource ContainerInstanceLaunchConfig --region ${AWS::Region} --configsets default
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ContainerInstanceAutoScalingGroup --region ${AWS::Region}
 
   # Auto Scaling Group containing the container instances
   ContainerInstanceAutoScalingGroup:
@@ -177,3 +198,4 @@ Resources:
         MinInstancesInService: 2
         MinSuccessfulInstancesPercent: 100
         PauseTime: PT10M
+        WaitOnResourceSignals: true
